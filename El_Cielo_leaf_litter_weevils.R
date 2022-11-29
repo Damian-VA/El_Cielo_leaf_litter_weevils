@@ -228,6 +228,10 @@ ggsave("./Figures/Figure_1.tiff", figure_richness,
 #### Models to test relationship between elevation and richness ####
 #___________________________________________________________________
 
+# Load leaf litter weevil richness per elevational floor database
+all <- readxl::read_xlsx("./El_Cielo_weevils_data.xlsx",
+                             sheet = "richness_per_elevation", col_names = T)
+
 # Following methodology of Joaqui et al. 2021:
 
 # (a) linear, (b) quadratic, (c) cubic, (d) exponential, (e) null
