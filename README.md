@@ -2,7 +2,7 @@
 
 ## Code & databases
 
-Damián Villaseñor-Amador^1,6^, Milan Janda^2,3,4^, Madai Rosas-Mejía^5^, Fátima Magdalena Sandoval-Becerra^2,5^, and Juan J. Morrone^1*^ 
+Damián Villaseñor-Amador<sup>1,6</sup>, Milan Janda^2,3,4^, Madai Rosas-Mejía^5^, Fátima Magdalena Sandoval-Becerra^2,5^, and Juan J. Morrone^1*^ 
 
 ^1^Departamento de Biología Evolutiva, Facultad de Ciencias, Universidad Nacional Autónoma de México (UNAM), 04510 Mexico City, Mexico. 
 
