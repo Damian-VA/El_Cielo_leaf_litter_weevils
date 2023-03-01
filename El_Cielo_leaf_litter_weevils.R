@@ -196,11 +196,10 @@ rich.curve = ggplot(weevil_richness_elevation, #data
               formula = y~I(x^1)+I(x^2)+I(x^3)) + # specify formula -> best deltaAICc = quadratic
        geom_point(aes(size=Abundance), alpha = 1) +
        scale_size(range = c(2,8)) + #variation between point sizes
-       labs(x = "Elevation (m a.s.l)", 
-            y = "Litter weevil richness") +
-       scale_y_continuous(name ="",
-                  limits = c(0,max(nonstanrich$qD.UCL)),
-                  breaks = seq(0,30,10)) +
+       scale_y_continuous(name ="Leaf litter weevil richness",
+                  #limits = c(0,max(nonstanrich$qD.UCL)),
+                  limits = c(0,30),
+                  breaks = seq(0,30,5)) +
        scale_x_continuous(name ="Elevation (m a.s.l)",
                   limits = c(200,2000),
                   breaks = seq(200,2000,200)) +
@@ -208,6 +207,9 @@ rich.curve = ggplot(weevil_richness_elevation, #data
        theme(axis.text=element_text(size=18,colour="black"),
              axis.title.x=element_text(size=18,colour="black",
                                        margin = margin(t = 5, r = 0, b = 0, l = 0,
+                                                    unit = "mm")),
+             axis.title.y=element_text(size=18,colour="black",
+                                       margin = margin(t = 0, r = 5, b = 0, l = 0,
                                                     unit = "mm")),
              legend.title=element_text(face="bold",size=18),
              legend.text=element_text(size=15),
@@ -221,8 +223,8 @@ figure_richness = cowplot::plot_grid(alpha.non.stan, rich.curve, labels = c("A",
                    hjust = -3, vjust = 2, label_size = 30)
 
 #Save richness plots as figure
-ggsave("./Figures/Figure_1.tiff", figure_richness, 
-       width=12000, height=6000, units="px", dpi=600, compression="lzw")
+ggsave("../Figuras/Figure_1.tiff", rich.curve, 
+       width=4500, height=4500, units="px", dpi=600, compression="lzw")
 
 #___________________________________________________________________
 #### Models to test relationship between elevation and richness ####
@@ -275,7 +277,7 @@ elev_ranges = as.data.frame(elev_ranges)
 
 #Add weevil genera names
 #Subset a single unique row for each morphospecies
-genera.unique = litter[!duplicated(litter[,c("SpeciesCode")]),]
+genera.unique = weevil_data[!duplicated(weevil_data[,c("SpeciesCode")]),]
 
 #Replace "TribeNewGenus" with shorter label
 genera.unique$Genus =  gsub('CryptorhynchiniNewGenus', 'Crypt. gen. nov. ', genera.unique$Genus)
@@ -288,6 +290,7 @@ gen_elev_abun = merge(elev_ranges, genera.unique[,c("SpeciesCode", "Genus")],
 
 #Create column of elevational floor median for each morph
 agg_elev <- plyr::ddply(gen_elev_abun, ~ Genus + Plot, function(x){c(Abundance=nrow(x))})
+agg_elev <- agg_elev[!is.na(agg_elev$Genus),] #delete NA
 elev_med = tapply(agg_elev$Plot, agg_elev$Genus, median)
 elev_med = data.frame(elev_med)
 elev_med$Genus = rownames(elev_med)
@@ -298,6 +301,13 @@ elev_dist = elev_dist[with(elev_dist, order(elev_med)),]
 #Set morphospecies level order as the ascending median of their
 #elevational range
 elev_dist$Genus = factor(elev_dist$Genus,
+                               levels = unique(elev_dist$Genus[
+                                 order(elev_dist$elev_med)
+                               ]), ordered = T)
+
+#Set morphospecies level order as the ascending median of their
+#elevational range -> for the median values dataframe (agg_elev)
+agg_elev$Genus = factor(agg_elev$Genus,
                                levels = unique(elev_dist$Genus[
                                  order(elev_dist$elev_med)
                                ]), ordered = T)
@@ -341,12 +351,12 @@ elev_dist$GenusItalics = factor(elev_dist$GenusItalics,
 Elevation_distribution <-
   ggplot(elev_dist, aes(x=Genus, y=Plot)) +
   # geom_path(aes(colour = "black"), size = 1, lineend = "round") +
-  geom_violin(aes(fill = Affinity), scale = "width", position = "dodge", trim = T, 
-              adjust=0.8, show.legend = T) +
   # geom_dotplot(binaxis = "y", binwidth = 2, stackdir = "center", show.legend = F, dotsize = 1) +
+  geom_violin(aes(fill = Affinity), scale = "width", position = "dodge", trim = T, 
+              adjust=0.8, show.legend = F) +
   stat_summary(data=agg_elev, fun = "median", geom = "point", colour = "black", size = 2) +
   # scale_y_reverse(name ="Elevation (m a.s.l)",lim=c(2000,200), breaks = seq(200,2000,200)) +
-  scale_fill_manual(values = c("#56B4E9", "#009E73")) +
+  scale_fill_manual(values = c("gray70", "gray70")) +
   scale_y_continuous(name ="Elevation (m a.s.l)",
                   limits = c(200,2000),
                   breaks = seq(200,2000,200)) +
@@ -356,12 +366,10 @@ Elevation_distribution <-
   theme(plot.title = element_text(hjust=0.5, size=12, face="bold"),
                           axis.text.x = element_text(angle=70, size=10, hjust=0),
                           axis.text.y = element_text(size=10, colour="black"),
-                          axis.title = element_text(size=11,face="bold",colour="black"),
-        legend.position = c(0.1,0.9), 
-        legend.text = element_text(size=11),
-        legend.title = element_text(size=11, face = "bold"))
+                          axis.title = element_text(size=11,face="bold",colour="black")
+        )
 
-ggsave("./Figures/Figure_2.tiff", Elevation_distribution, 
+ggsave("../Figuras/Figure_2.tiff", Elevation_distribution, 
        width=6000, height=4500, units="px", dpi=600, compression="lzw")
 
 #_________________________________________________________
@@ -1822,6 +1830,135 @@ mm.R.Pvalue = round(cbind(pseudoR2,pvalue),3)[-1,]; mm.R.Pvalue
 # litter_depth:bio15         0.003  0.014
 # dbh_median:tree_rich       0.030  0.003
 # dbh_median:bio15           0.209  0.003
+
+#____________________________________________
+#### Plot of richness given dbh_median:bio15 as heatmap ####
+#____________________________________________
+
+# Plot of richness given dbh_median
+rich.dbh = ggplot(enviro_predictors, #data
+       aes(x=dbh_median, y=richness)) + #x variable, y variable
+       geom_smooth(colour = "black",      # black line
+              se = F,                     # turn off confidence band
+              method = lm,               # use lm, loess, gam, glm
+              n = 1000,                   # the larger the n, the smoother the curve
+              size = 1.5) + # line width
+       geom_point(aes(size=abundance), alpha = 1) +
+       scale_size(range = c(2,8)) + #variation between point sizes
+       scale_y_continuous(name ="Leaf litter weevil richness",
+                  #limits = c(0,max(nonstanrich$qD.UCL)),
+                  limits = c(0,30),
+                  breaks = seq(0,30,5)) +
+       scale_x_continuous(name ="Tree size (DBH m)",
+                  limits = c(0,0.4),
+                  breaks = seq(0,0.4,0.05)) +
+       theme_classic() + 
+       theme(axis.text=element_text(size=18,colour="black"),
+             axis.title.x=element_text(size=18,colour="black",
+                                       margin = margin(t = 5, r = 0, b = 0, l = 0,
+                                                    unit = "mm")),
+             axis.title.y=element_text(size=18,colour="black",
+                                       margin = margin(t = 0, r = 5, b = 0, l = 0,
+                                                    unit = "mm")),
+             legend.title=element_text(face="bold",size=18),
+             legend.text=element_text(size=15),
+             legend.position = c(0.9,0.9),
+             plot.margin = unit(c(2,0,0.55,0),"cm"),
+             axis.ticks.length.x = unit(0.25, "cm")
+             )
+rich.dbh
+
+# Plot of richness given bio15
+rich.bio15 = ggplot(enviro_predictors, #data
+       aes(x=bio15, y=richness)) + #x variable, y variable
+       geom_smooth(colour = "black",      # black line
+              se = F,                     # turn off confidence band
+              method = lm,               # use lm, loess, gam, glm
+              n = 1000,                   # the larger the n, the smoother the curve
+              size = 1.5) + # line width
+       geom_point(aes(size=abundance), alpha = 1) +
+       scale_size(range = c(2,8)) + #variation between point sizes
+       scale_y_continuous(name ="Leaf litter weevil richness",
+                  #limits = c(0,max(nonstanrich$qD.UCL)),
+                  limits = c(0,30),
+                  breaks = seq(0,30,5)) +
+       scale_x_continuous(name ="% of annual rainfall variation (BIO 15)",
+                  limits = c(75,85),
+                  breaks = seq(75,85,1)) +
+       theme_classic() + 
+       theme(axis.text=element_text(size=18,colour="black"),
+             axis.title.x=element_text(size=18,colour="black",
+                                       margin = margin(t = 5, r = 0, b = 0, l = 0,
+                                                    unit = "mm")),
+             axis.title.y=element_text(size=18,colour="black",
+                                       margin = margin(t = 0, r = 5, b = 0, l = 0,
+                                                    unit = "mm")),
+             legend.title=element_text(face="bold",size=18),
+             legend.text=element_text(size=15),
+             legend.position = c(0.9,0.9),
+             plot.margin = unit(c(2,0,0.55,0),"cm"),
+             axis.ticks.length.x = unit(0.25, "cm")
+             )
+rich.bio15
+
+# Fitted minimum model
+mm <- glm(formula = richness ~ altitude + litter_depth + dbh_median +
+    tree_rich + bio15 + altitude:dbh_median + litter_depth:dbh_median +
+    litter_depth:bio15 + dbh_median:tree_rich + dbh_median:bio15,
+    family = quasipoisson(link = log), data = enviro_predictors)
+
+# Fitted model for plotting
+fit = glm(richness ~ dbh_median + bio15 + dbh_median:bio15,
+    family = quasipoisson(link = log), data = enviro_predictors)
+
+#Resolution of the surface
+grid.lines = 100
+
+#Sequence of points for explanatory variables (x=dbh_median, y=bio15)
+x.pred <- seq(min(enviro_predictors$dbh_median), max(enviro_predictors$dbh_median),
+              length.out = grid.lines)
+y.pred <- seq(min(enviro_predictors$bio15), max(enviro_predictors$bio15),
+              length.out = grid.lines)
+xy <- expand.grid(dbh_median = x.pred, bio15 = y.pred)
+
+#Predicted (estimated) points for answer variable (z=richness)
+z.pred <- matrix(predict(fit, newdata = xy),
+                 nrow = grid.lines, ncol = grid.lines)
+
+#Plot 2D surface plot as heatmap with contour lines
+library(plot3D)
+plot3D::image2D(z.pred, x = x.pred, y = y.pred,
+                colkey = list(plot = T),
+                 clab = "Weevil\nrichness",
+                alpha=0.7,
+                #contour = list(nlevels = 6, lwd = 2, labcex = 0.1, col="black"),
+                xlab="Tree size (DHB m)",
+                ylab="% of annual rainfall variation (BIO 15)")
+
+# #Plot tickmarks for y axis (infestation proportion)
+# axis(2, at=c(1,10,20,29), labels = c(0,0.29,0.4,0.5), las=1)
+
+#Add observed points (elevational floors) which size corresponds to weevil richness
+plot3D::scatter2D(colvar = enviro_predictors$richness,
+                  x = jitter(enviro_predictors$dbh_median, factor = 1),
+                  y = jitter(enviro_predictors$bio15, factor = 1),
+                  pch = 16, add = T,
+                  cex = log10(enviro_predictors$abundance),
+                  col = "black")
+
+# Save contour plot as png
+library(rsm)
+rsm::contour.lm(mm, ~dbh_median+bio15, image=F,
+                at=c(altitude=median(enviro_predictors$altitude), 
+                     litter_depth=median(enviro_predictors$litter_depth), 
+                     tree_rich=median(enviro_predictors$tree_rich)),
+                xlabs=c("% of annual rainfall variation (BIO 15)","Tree size (DHB m)"),
+                las=1)
+points(x=jitter(enviro_predictors$dbh_median, factor = 1),
+       y=jitter(enviro_predictors$bio15, factor = 1),
+       pch=16,
+       col="black",
+       cex = log10(enviro_predictors$abundance))
 
 #____________________________________________
 #### Beta ~ environmental predictors GLM ####
