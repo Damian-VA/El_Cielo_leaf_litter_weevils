@@ -192,7 +192,7 @@ rich.curve = ggplot(weevil_richness_elevation, #data
               se = T,                     # turn off confidence band
               method = glm,               # use lm, loess, gam, glm
               n = 1000,                   # the larger the n, the smoother the curve
-              size = 1.5,                 # line width
+              linewidth = 1.5,                 # line width
               formula = y~I(x^1)+I(x^2)+I(x^3)) + # specify formula -> best deltaAICc = quadratic
        geom_point(aes(size=Abundance), alpha = 1) +
        scale_size(range = c(2,8)) + #variation between point sizes
@@ -222,9 +222,13 @@ rich.curve = ggplot(weevil_richness_elevation, #data
 figure_richness = cowplot::plot_grid(alpha.non.stan, rich.curve, labels = c("A","B"), 
                    hjust = -3, vjust = 2, label_size = 30)
 
-#Save richness plots as figure
-ggsave("../Figuras/Figure_1.tiff", rich.curve, 
+#Save richness plots as .tiff
+ggsave("../Figuras/Figure_1.tiff", rich.curve,
        width=4500, height=4500, units="px", dpi=600, compression="lzw")
+
+#Save richness plots as .eps
+ggsave("../Figuras/Figure_1.eps", rich.curve, device=cairo_ps,
+       width=4500, height=4500, units="px", dpi=600)
 
 #___________________________________________________________________
 #### Models to test relationship between elevation and richness ####
@@ -369,8 +373,13 @@ Elevation_distribution <-
                           axis.title = element_text(size=11,face="bold",colour="black")
         )
 
-ggsave("../Figuras/Figure_2.tiff", Elevation_distribution, 
+#Save figure as .tiff
+ggsave("../Figuras/Figure_2.tiff", Elevation_distribution,
        width=6000, height=4500, units="px", dpi=600, compression="lzw")
+
+#Save figure as .eps
+ggsave("../Figuras/Figure_2.eps", Elevation_distribution, device=cairo_ps,
+       width=6000, height=4500, units="px", dpi=600)
 
 #_________________________________________________________
 #### Multiple beta-diversity distributions (figure 3) ####
@@ -396,16 +405,18 @@ im[im > 0] <- 1
 #Load transect 1 abundance matrix (sampled in 2019)
 am <- readxl::read_xlsx("./El_Cielo_weevils_data.xlsx",
                         sheet = "abundance_matrix_T1", col_names = T)
+am=as.data.frame(am)
 am2019 = am[,-1]
-rownames(am2019) = am[,1]
+row.names(am2019) = am[,1]
 im2019 = am2019
 im2019[im2019 > 0] <- 1
 
 #Load transect 2 abundance matrix (sampled in 2020)
 am <- readxl::read_xlsx("./El_Cielo_weevils_data.xlsx",
                         sheet = "abundance_matrix_T2", col_names = T)
+am=as.data.frame(am)
 am2020 = am[,-1]
-rownames(am2020) = am[,1]
+row.names(am2020) = am[,1]
 im2020 = am2020
 im2020[im2020 > 0] <- 1
 
@@ -512,7 +523,7 @@ plot_bray <- ggplot(bray_df, aes(x = beta.BRAY, group = Transect, fill = Transec
         legend.title = element_text(size = 14),
         plot.margin = margin(10,0,10,0)) +   # top, right, bottom, left 
   annotate("text", y = max(density(bray_df$beta.BRAY)$y), 
-           x = max(bray_df$beta.BRAY), 
+           x = 0.88, 
            label = bquote(italic(p)==.(p_bray)), 
            hjust = 0, size = 5)
 
@@ -640,6 +651,7 @@ plot_jac <- ggplot(jac_df, aes(x = beta.JAC, group = Transect, fill = Transect))
   scale_fill_manual(#values = c("#009E73","#CC79A7")
                     values = c("#56B4E9","#D55E00")) + 
   labs(x = expression("MβD"[JAC]), y = "Density") + 
+  scale_x_continuous(n.breaks=3, labels=c("0.7","0.8","0.9")) +
   theme_classic() +
   theme(axis.title.x = element_text(size = 18), plot.title = element_text(size = 18, hjust = 0.5),
         axis.text = element_text(size = 18),
@@ -842,8 +854,11 @@ MBD_dist_CURBC =
   plot_sor + plot_sim + plot_sne +
   plot_bray + plot_bal + plot_gra +
   patchwork::plot_layout(ncol = 3, nrow = 3, guides = 'collect')
-ggsave(MBD_dist_CURBC, filename = "./Figures_3.tiff",
+ggsave(MBD_dist_CURBC, filename = "../Figuras/Figure_3.tiff",
        height = 6300, width = 6300, units = "px", dpi = 600, compression = "lzw")
+#Save figure as .eps
+ggsave("../Figuras/Figure_3.eps", MBD_dist_CURBC, device=cairo_ps,
+       width=6300, height=6300, units="px", dpi=600)
 
 #___________________________________________
 #### Beta diversity heatmaps (figure 4) ####
@@ -1291,8 +1306,11 @@ beta_pairwise_heatmaps_CURBC =
   total_sor_plot + turn_sor_plot + nes_sor_plot +
   total_bray_plot + turn_bray_plot + nes_bray_plot +
   patchwork::plot_layout(ncol = 3, nrow = 3, guides = 'keep')
-ggsave(beta_pairwise_heatmaps_CURBC, filename = "./Figure_4.tiff",
+ggsave(beta_pairwise_heatmaps_CURBC, filename = "../Figuras/Figure_4.tiff",
        height = 6000, width = 6800, units = "px", dpi = 600, compression = "lzw")
+#Save figure as .eps
+ggsave("../Figuras/Figure_4.eps", beta_pairwise_heatmaps_CURBC, device=cairo_ps,
+       width=6000, height=6800, units="px", dpi=600)
 
 #_____________________________________________________
 #### Canonical Correspondence Analysis (figure 5) ####
@@ -1473,7 +1491,7 @@ weevil.cca.df$scores = as.factor(weevil.cca.df$scores)
 
 #Add genera names
 #Subset a single unique row for each morphospecies
-genera.unique = litter[!duplicated(litter[,c("SpeciesCode")]),]
+genera.unique = weevil_data[!duplicated(weevil_data[,c("SpeciesCode")]),]
 # Add column with morphospecies taxonomical names
 weevil.cca.genera = merge(weevil.cca.df, genera.unique[,c("SpeciesCode", "Genus")],
                           by.x="labels",
@@ -1541,6 +1559,7 @@ CCA_CURBC <- ggplot(weevil.cca.df,
                    max.overlaps = 100,
                    size = 4,
                    parse = T,
+                   force = 4,
                    box.padding = unit(0.5, "lines")) +
   guides(colour = guide_legend(override.aes = list(size = 4))) +
   theme_classic() +
@@ -1551,9 +1570,11 @@ CCA_CURBC <- ggplot(weevil.cca.df,
         #legend.position=c(0.1,0.9),
         legend.position="none" #remove legend
         )
-ggsave("./Figures/Figure_5.tiff", CCA_CURBC, 
-       width=8000, height=6300, units="px", dpi=600, compression="lzw")
-
+ggsave("../Figuras/Figure_5.tiff", CCA_CURBC, 
+       width=9000, height=6300, units="px", dpi=600, compression="lzw")
+#Save figure as .eps
+ggsave("../Figuras/Figure_5.eps", CCA_CURBC, device=cairo_ps,
+       width=9000, height=6300, units="px", dpi=600)
 #_________________________________
 #### χ2 goodness-of-fit tests ####
 #_________________________________
