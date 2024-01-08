@@ -1,5 +1,7 @@
 # Leaf litter weevil richness increases with elevation in a tropical-temperate transitional forest in El Cielo Biosphere Reserve, northeastern Mexico
 
+Paper: Villaseñor-Amador, D., Janda, M., Rosas-Mejía, M., Sandoval-Becerra, F. M., & Morrone, J. J. (2024). Leaf litter weevil richness increases with elevation in a tropical–temperate transitional forest in El Cielo Biosphere Reserve, northeastern Mexico. Biotropica, 00, 1–12. https://doi.org/10.1111/btp.13295
+
 ## Code & databases
 
 Damián Villaseñor-Amador<sup>1,2</sup>, Milan Janda<sup>3,4,5</sup>, Madai Rosas-Mejía<sup>6,7</sup>, Fátima Magdalena Sandoval-Becerra<sup>3,6</sup>, and Juan J. Morrone<sup>1*</sup> 
